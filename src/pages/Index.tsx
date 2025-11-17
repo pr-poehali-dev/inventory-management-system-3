@@ -29,13 +29,22 @@ const statusConfig = {
 };
 
 const typeConfig = {
-  'laptop': { label: 'Ноутбук', icon: 'Laptop' },
-  'printer': { label: 'Принтер', icon: 'Printer' },
-  'cartridge': { label: 'Картридж', icon: 'Package' },
-  'monitor': { label: 'Монитор', icon: 'Monitor' },
-  'smartphone': { label: 'Смартфон', icon: 'Smartphone' },
-  'mouse': { label: 'Мышка', icon: 'Mouse' },
-  'keyboard': { label: 'Клавиатура', icon: 'Keyboard' }
+  'laptop': { label: 'Ноутбук', icon: 'Laptop', category: 'laptop' },
+  'printer': { label: 'Принтер', icon: 'Printer', category: 'printer' },
+  'cartridge': { label: 'Картридж', icon: 'Package', category: 'cartridge' },
+  'monitor': { label: 'Монитор', icon: 'Monitor', category: 'monitor' },
+  'smartphone': { label: 'Смартфон', icon: 'Smartphone', category: 'smartphone' },
+  'mouse': { label: 'Мышка', icon: 'Mouse', category: 'consumables' },
+  'keyboard': { label: 'Клавиатура', icon: 'Keyboard', category: 'consumables' }
+};
+
+const categoryConfig = {
+  'laptop': { label: 'Ноутбуки', icon: 'Laptop' },
+  'printer': { label: 'Принтеры', icon: 'Printer' },
+  'cartridge': { label: 'Картриджи', icon: 'Package' },
+  'monitor': { label: 'Мониторы', icon: 'Monitor' },
+  'smartphone': { label: 'Смартфоны', icon: 'Smartphone' },
+  'consumables': { label: 'Расходники', icon: 'PackageOpen' }
 };
 
 const mockData: Equipment[] = [
@@ -59,7 +68,8 @@ export default function Index() {
 
   const filteredEquipment = equipment.filter(item => {
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
-    const matchesType = activeTab === 'all' || item.type === activeTab;
+    const itemCategory = typeConfig[item.type].category;
+    const matchesType = activeTab === 'all' || itemCategory === activeTab;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.serialNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (item.assignedTo?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
@@ -74,9 +84,9 @@ export default function Index() {
     reserveNoIssue: equipment.filter(e => e.status === 'reserve-no-issue').length,
   };
 
-  const typeStats = Object.keys(typeConfig).map(type => ({
-    type: type as EquipmentType,
-    count: equipment.filter(e => e.type === type).length
+  const categoryStats = Object.keys(categoryConfig).map(category => ({
+    category,
+    count: equipment.filter(e => typeConfig[e.type].category === category).length
   }));
 
   return (
@@ -159,11 +169,11 @@ export default function Index() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {typeStats.map(({ type, count }) => (
-                  <div key={type} className="flex items-center justify-between">
+                {categoryStats.map(({ category, count }) => (
+                  <div key={category} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Icon name={typeConfig[type].icon as any} size={20} className="text-muted-foreground" />
-                      <span className="font-medium">{typeConfig[type].label}</span>
+                      <Icon name={categoryConfig[category as keyof typeof categoryConfig].icon as any} size={20} className="text-muted-foreground" />
+                      <span className="font-medium">{categoryConfig[category as keyof typeof categoryConfig].label}</span>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="w-48 bg-gray-200 rounded-full h-2.5">
@@ -252,12 +262,12 @@ export default function Index() {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 mb-6">
+              <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 mb-6">
                 <TabsTrigger value="all" className="flex items-center gap-2">
                   <Icon name="Grid3x3" size={16} />
                   <span className="hidden sm:inline">Все</span>
                 </TabsTrigger>
-                {Object.entries(typeConfig).map(([key, { label, icon }]) => (
+                {Object.entries(categoryConfig).map(([key, { label, icon }]) => (
                   <TabsTrigger key={key} value={key} className="flex items-center gap-2">
                     <Icon name={icon as any} size={16} />
                     <span className="hidden sm:inline">{label}</span>
