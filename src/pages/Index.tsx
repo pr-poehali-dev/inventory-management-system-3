@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
+import * as XLSX from 'xlsx';
 
 type EquipmentStatus = 'issued' | 'reserve-ready' | 'reserve-not-ready' | 'reserve-no-issue';
 type EquipmentType = 'laptop' | 'printer' | 'cartridge' | 'monitor' | 'smartphone' | 'mouse' | 'keyboard';
@@ -89,6 +90,24 @@ export default function Index() {
     count: equipment.filter(e => typeConfig[e.type].category === category).length
   }));
 
+  const exportToExcel = () => {
+    const exportData = filteredEquipment.map(item => ({
+      'Тип': typeConfig[item.type].label,
+      'Наименование': item.name,
+      'Модель': item.model,
+      'Серийный номер': item.serialNumber,
+      'Статус': statusConfig[item.status].label,
+      'Закреплен за': item.assignedTo || '—'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Оборудование');
+    
+    const fileName = `IT_Equipment_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '-')}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-sidebar text-sidebar-foreground border-b border-sidebar-border">
@@ -98,10 +117,20 @@ export default function Index() {
               <Icon name="Server" size={28} />
               <h1 className="text-2xl font-bold">IT Asset Management</h1>
             </div>
-            <Button variant="outline" className="bg-sidebar-accent text-sidebar-accent-foreground border-sidebar-border hover:bg-sidebar-primary hover:text-sidebar-primary-foreground">
-              <Icon name="Plus" size={18} className="mr-2" />
-              Добавить оборудование
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={exportToExcel}
+                className="bg-sidebar-accent text-sidebar-accent-foreground border-sidebar-border hover:bg-sidebar-primary hover:text-sidebar-primary-foreground"
+              >
+                <Icon name="Download" size={18} className="mr-2" />
+                Экспорт в Excel
+              </Button>
+              <Button variant="outline" className="bg-sidebar-accent text-sidebar-accent-foreground border-sidebar-border hover:bg-sidebar-primary hover:text-sidebar-primary-foreground">
+                <Icon name="Plus" size={18} className="mr-2" />
+                Добавить оборудование
+              </Button>
+            </div>
           </div>
         </div>
       </header>
