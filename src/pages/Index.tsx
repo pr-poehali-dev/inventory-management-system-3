@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 
 type EquipmentStatus = 'issued' | 'reserve-ready' | 'reserve-not-ready' | 'reserve-no-issue';
@@ -53,12 +54,12 @@ const mockData: Equipment[] = [
 export default function Index() {
   const [equipment] = useState<Equipment[]>(mockData);
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterType, setFilterType] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredEquipment = equipment.filter(item => {
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
-    const matchesType = filterType === 'all' || item.type === filterType;
+    const matchesType = activeTab === 'all' || item.type === activeTab;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.serialNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (item.assignedTo?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
@@ -235,17 +236,6 @@ export default function Index() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full sm:w-64"
                 />
-                <Select value={filterType} onValueChange={setFilterType}>
-                  <SelectTrigger className="w-full sm:w-48">
-                    <SelectValue placeholder="Тип оборудования" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Все типы</SelectItem>
-                    {Object.entries(typeConfig).map(([key, { label }]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
                   <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Статус" />
@@ -261,6 +251,20 @@ export default function Index() {
             </div>
           </CardHeader>
           <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 mb-6">
+                <TabsTrigger value="all" className="flex items-center gap-2">
+                  <Icon name="Grid3x3" size={16} />
+                  <span className="hidden sm:inline">Все</span>
+                </TabsTrigger>
+                {Object.entries(typeConfig).map(([key, { label, icon }]) => (
+                  <TabsTrigger key={key} value={key} className="flex items-center gap-2">
+                    <Icon name={icon as any} size={16} />
+                    <span className="hidden sm:inline">{label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <TabsContent value={activeTab} className="mt-0">
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
@@ -315,6 +319,8 @@ export default function Index() {
                 </TableBody>
               </Table>
             </div>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </main>
